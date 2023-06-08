@@ -1,7 +1,6 @@
 package powervs
 
 import (
-	"context"
 	"math"
 	"strings"
 	"time"
@@ -149,7 +148,7 @@ func (o *ClusterUninstaller) destroyJobs() error {
 			Factor:   1.1,
 			Cap:      leftInContext(ctx),
 			Steps:    math.MaxInt32}
-		err = wait.ExponentialBackoffWithContext(ctx, backoff, func(context.Context) (bool, error) {
+		err = wait.ExponentialBackoffWithContext(ctx, backoff, func() (bool, error) {
 			result, err2 := o.deleteJob(item)
 			switch result {
 			case DeleteJobSuccess:
@@ -182,7 +181,7 @@ func (o *ClusterUninstaller) destroyJobs() error {
 		Factor:   1.1,
 		Cap:      leftInContext(ctx),
 		Steps:    math.MaxInt32}
-	err = wait.ExponentialBackoffWithContext(ctx, backoff, func(context.Context) (bool, error) {
+	err = wait.ExponentialBackoffWithContext(ctx, backoff, func() (bool, error) {
 		secondPassList, err2 := o.listJobs()
 		if err2 != nil {
 			return false, err2

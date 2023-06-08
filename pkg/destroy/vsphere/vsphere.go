@@ -240,10 +240,9 @@ func (o *ClusterUninstaller) destroyCluster(ctx context.Context) (bool, error) {
 func (o *ClusterUninstaller) Run() (*installertypes.ClusterQuota, error) {
 	defer o.client.Logout()
 
-	err := wait.PollUntilContextCancel(
+	err := wait.PollImmediateInfiniteWithContext(
 		context.Background(),
 		time.Second*10,
-		true,
 		o.destroyCluster,
 	)
 	if err != nil {

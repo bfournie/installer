@@ -1,7 +1,6 @@
 package powervs
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"net/http"
@@ -158,7 +157,7 @@ func (o *ClusterUninstaller) destroyResourceRecords() error {
 			Factor:   1.1,
 			Cap:      leftInContext(ctx),
 			Steps:    math.MaxInt32}
-		err = wait.ExponentialBackoffWithContext(ctx, backoff, func(context.Context) (bool, error) {
+		err = wait.ExponentialBackoffWithContext(ctx, backoff, func() (bool, error) {
 			err2 := o.destroyResourceRecord(item)
 			if err2 == nil {
 				return true, err2
@@ -183,7 +182,7 @@ func (o *ClusterUninstaller) destroyResourceRecords() error {
 		Factor:   1.1,
 		Cap:      leftInContext(ctx),
 		Steps:    math.MaxInt32}
-	err = wait.ExponentialBackoffWithContext(ctx, backoff, func(context.Context) (bool, error) {
+	err = wait.ExponentialBackoffWithContext(ctx, backoff, func() (bool, error) {
 		secondPassList, err2 := o.listResourceRecords()
 		if err2 != nil {
 			return false, err2

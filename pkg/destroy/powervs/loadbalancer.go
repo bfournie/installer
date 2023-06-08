@@ -1,7 +1,6 @@
 package powervs
 
 import (
-	"context"
 	"math"
 	"net/http"
 	"strings"
@@ -150,7 +149,7 @@ func (o *ClusterUninstaller) destroyLoadBalancers() error {
 			Factor:   1.1,
 			Cap:      leftInContext(ctx),
 			Steps:    math.MaxInt32}
-		err = wait.ExponentialBackoffWithContext(ctx, backoff, func(context.Context) (bool, error) {
+		err = wait.ExponentialBackoffWithContext(ctx, backoff, func() (bool, error) {
 			err2 := o.deleteLoadBalancer(item)
 			if err2 == nil {
 				return true, err2
@@ -175,7 +174,7 @@ func (o *ClusterUninstaller) destroyLoadBalancers() error {
 		Factor:   1.1,
 		Cap:      leftInContext(ctx),
 		Steps:    math.MaxInt32}
-	err = wait.ExponentialBackoffWithContext(ctx, backoff, func(context.Context) (bool, error) {
+	err = wait.ExponentialBackoffWithContext(ctx, backoff, func() (bool, error) {
 		secondPassList, err2 := o.listLoadBalancers()
 		if err2 != nil {
 			return false, err2

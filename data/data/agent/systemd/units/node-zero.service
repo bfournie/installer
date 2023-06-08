@@ -1,7 +1,7 @@
 [Unit]
 Description=Identify node zero to run OpenShift Assisted Installation Service on
-Wants=network-online.target
-After=network-online.target
+Wants=network-online.target load-config-iso@.service
+After=network-online.target load-config-iso@.service
 
 [Service]
 Type=oneshot

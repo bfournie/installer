@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -87,8 +86,8 @@ type AccessDetails interface {
 	BuildBIOSSettings(firmwareConfig *FirmwareConfig) (settings []map[string]string, err error)
 }
 
-func GetParsedURL(address string) (parsedURL *url.URL, err error) {
-
+func getParsedURL(address string) (parsedURL *url.URL, err error) {
+	// Start by assuming "type://host:port"
 	parsedURL, err = url.Parse(address)
 	if err != nil {
 		// We failed to parse the URL, but it may just be a host or
@@ -128,12 +127,6 @@ func GetParsedURL(address string) (parsedURL *url.URL, err error) {
 			}
 		}
 	}
-
-	// Check for expected hostname format
-	if err := checkDNSValid(parsedURL.Hostname()); err != nil {
-		return nil, errors.Wrap(err, "failed to parse BMC address information")
-	}
-
 	return parsedURL, nil
 }
 
@@ -145,7 +138,7 @@ func NewAccessDetails(address string, disableCertificateVerification bool) (Acce
 		return nil, errors.New("missing BMC address")
 	}
 
-	parsedURL, err := GetParsedURL(address)
+	parsedURL, err := getParsedURL(address)
 	if err != nil {
 		return nil, err
 	}
@@ -156,24 +149,4 @@ func NewAccessDetails(address string, disableCertificateVerification bool) (Acce
 	}
 
 	return factory(parsedURL, disableCertificateVerification)
-}
-
-func checkDNSValid(address string) error {
-
-	// Allowing empty BMC address
-	if address == "" {
-		return nil
-	}
-
-	// Check if its a IPv6/IPv4 address
-	if net.ParseIP(address) != nil {
-		return nil
-	}
-
-	// Check if BMC address hostname follows DNS Standard
-	valid, _ := regexp.MatchString(`^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]{0,61}[A-Za-z0-9])$`, address)
-	if !valid {
-		return fmt.Errorf("BMC address hostname/IP : [%s] is invalid", address)
-	}
-	return nil
 }
