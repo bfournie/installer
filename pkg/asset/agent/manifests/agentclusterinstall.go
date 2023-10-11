@@ -45,17 +45,6 @@ type AgentClusterInstall struct {
 	Config *hiveext.AgentClusterInstall
 }
 
-type agentClusterInstallOnPremPlatform struct {
-	// APIVIPs contains the VIP(s) to use for internal API communication. In
-	// dual stack clusters it contains an IPv4 and IPv6 address, otherwise only
-	// one VIP
-	APIVIPs []string `json:"apiVIPs,omitempty"`
-
-	// IngressVIPs contains the VIP(s) to use for ingress traffic. In dual stack
-	// clusters it contains an IPv4 and IPv6 address, otherwise only one VIP
-	IngressVIPs []string `json:"ingressVIPs,omitempty"`
-}
-
 type agentClusterInstallOnPremExternalPlatform struct {
 	// PlatformName holds the arbitrary string representing the infrastructure provider name, expected to be set at the installation time.
 	PlatformName string `json:"platformName,omitempty"`
@@ -64,12 +53,6 @@ type agentClusterInstallOnPremExternalPlatform struct {
 }
 
 type agentClusterInstallPlatform struct {
-	// BareMetal is the configuration used when installing on bare metal.
-	// +optional
-	BareMetal *agentClusterInstallOnPremPlatform `json:"baremetal,omitempty"`
-	// VSphere is the configuration used when installing on vSphere.
-	// +optional
-	VSphere *agentClusterInstallOnPremPlatform `json:"vsphere,omitempty"`
 	// External is the configuration used when installing on external cloud provider.
 	// +optional
 	External *agentClusterInstallOnPremExternalPlatform `json:"external,omitempty"`
@@ -190,29 +173,11 @@ func (a *AgentClusterInstall) Generate(dependencies asset.Parents) error {
 		}
 
 		if installConfig.Config.Platform.BareMetal != nil {
-			if len(installConfig.Config.Platform.BareMetal.APIVIPs) > 1 {
-				icOverridden = true
-				icOverrides.Platform = &agentClusterInstallPlatform{
-					BareMetal: &agentClusterInstallOnPremPlatform{
-						APIVIPs:     installConfig.Config.Platform.BareMetal.APIVIPs,
-						IngressVIPs: installConfig.Config.Platform.BareMetal.IngressVIPs,
-					},
-				}
-			}
-			agentClusterInstall.Spec.APIVIP = installConfig.Config.Platform.BareMetal.APIVIPs[0]
-			agentClusterInstall.Spec.IngressVIP = installConfig.Config.Platform.BareMetal.IngressVIPs[0]
+			agentClusterInstall.Spec.APIVIPs = installConfig.Config.Platform.BareMetal.APIVIPs
+			agentClusterInstall.Spec.IngressVIPs = installConfig.Config.Platform.BareMetal.IngressVIPs
 		} else if installConfig.Config.Platform.VSphere != nil {
-			if len(installConfig.Config.Platform.VSphere.APIVIPs) > 1 {
-				icOverridden = true
-				icOverrides.Platform = &agentClusterInstallPlatform{
-					VSphere: &agentClusterInstallOnPremPlatform{
-						APIVIPs:     installConfig.Config.Platform.VSphere.APIVIPs,
-						IngressVIPs: installConfig.Config.Platform.VSphere.IngressVIPs,
-					},
-				}
-			}
-			agentClusterInstall.Spec.APIVIP = installConfig.Config.Platform.VSphere.APIVIPs[0]
-			agentClusterInstall.Spec.IngressVIP = installConfig.Config.Platform.VSphere.IngressVIPs[0]
+			agentClusterInstall.Spec.APIVIPs = installConfig.Config.Platform.VSphere.APIVIPs
+			agentClusterInstall.Spec.IngressVIPs = installConfig.Config.Platform.VSphere.IngressVIPs
 		} else if installConfig.Config.Platform.External != nil {
 			icOverridden = true
 			icOverrides.Platform = &agentClusterInstallPlatform{
